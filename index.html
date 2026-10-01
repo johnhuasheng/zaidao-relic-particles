@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>载道 · 文物粒子</title>
+<meta name="description" content="载道：以粒子重现良渚玉琮、后母戊鼎、越王勾践剑、元青花梅瓶——成片视频、交互式网页演示与可编辑 PPT。">
+<meta property="og:title" content="载道 · 文物粒子">
+<meta property="og:image" content="site/poster.jpg">
+<style>
+  :root {
+    --bg: #121a17; --bg2: #18211d; --line: rgba(216, 179, 106, .22);
+    --gold: #d8b36a; --gold2: #b8964f; --ink: #ece6d6; --dim: #9aa298; --muted: #6f786f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
+  body { background: var(--bg); color: var(--ink); font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', serif; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .kicker { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-size: 13px; letter-spacing: .28em; color: var(--gold); text-transform: uppercase; }
+
+  header { padding: 72px 0 40px; position: relative; }
+  .brand { display: flex; align-items: center; gap: 22px; margin-top: 14px; }
+  .seal { width: 58px; height: 58px; border: 2px solid #b8432f; color: #c9513a; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 21px; line-height: 1.05; flex: none; }
+  h1 { font-size: clamp(56px, 10vw, 104px); font-weight: 600; color: var(--gold); letter-spacing: .12em; line-height: 1.05; text-shadow: 0 0 40px rgba(216, 179, 106, .2); }
+  .lead { margin-top: 22px; color: #bfc4b9; font-size: 17px; letter-spacing: .06em; max-width: 680px; }
+
+  .player { margin-top: 8px; border: 1px solid var(--line); background: #0c110f; aspect-ratio: 16 / 9; }
+  .player video { width: 100%; height: 100%; display: block; }
+  .caption { margin-top: 12px; color: var(--muted); font-size: 13px; letter-spacing: .08em; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+  .card { border: 1px solid var(--line); background: var(--bg2); padding: 26px 24px 24px; display: flex; flex-direction: column; transition: border-color .3s, transform .3s; }
+  .card:hover { border-color: rgba(216, 179, 106, .6); transform: translateY(-2px); }
+  .card h3 { font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: .06em; margin-top: 10px; }
+  .card p { color: var(--dim); font-size: 14.5px; margin-top: 10px; flex: 1; }
+  .btn { margin-top: 20px; align-self: flex-start; border: 1px solid var(--gold2); color: var(--gold); padding: 8px 18px; font-size: 14px; letter-spacing: .12em; }
+  .card:hover .btn { background: rgba(216, 179, 106, .1); }
+
+  section { margin-top: 84px; }
+  h2 { font-size: 30px; font-weight: 600; color: var(--gold); letter-spacing: .1em; margin-top: 10px; }
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+  .gallery figure { border: 1px solid rgba(255, 255, 255, .06); background: #0c110f; }
+  .gallery img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+  .gallery figcaption { font-size: 12.5px; color: var(--muted); padding: 7px 10px; letter-spacing: .06em; }
+
+  .relics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 26px; border-top: 1px solid var(--line); }
+  .relic { padding: 22px 20px 6px 0; }
+  .relic + .relic { padding-left: 20px; border-left: 1px solid rgba(255, 255, 255, .06); }
+  .relic .era { font-size: 12.5px; color: var(--gold2); letter-spacing: .14em; }
+  .relic h4 { font-size: 20px; font-weight: 600; margin-top: 6px; letter-spacing: .06em; }
+  .relic p { font-size: 14px; color: var(--dim); margin-top: 8px; }
+
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 24px; }
+  .notes ul { list-style: none; }
+  .notes li { color: var(--dim); font-size: 14.5px; padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, .05); }
+  .notes li b { color: var(--ink); font-weight: 600; margin-right: 8px; }
+  code { font-family: Consolas, 'Courier New', monospace; font-size: 13px; background: #0c110f; border: 1px solid rgba(255, 255, 255, .07); padding: 1px 6px; color: #d8cfb4; }
+
+  footer { margin: 96px 0 0; padding: 30px 0 46px; border-top: 1px solid rgba(255, 255, 255, .06); color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--gold2); }
+
+  @media (max-width: 860px) {
+    header { padding-top: 48px; }
+    .cards { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .relics { grid-template-columns: 1fr 1fr; }
+    .relic:nth-child(3) { padding-left: 0; border-left: 0; }
+    .notes { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding: 0 16px; }
+    .relics { grid-template-columns: 1fr; }
+    .relic + .relic { padding-left: 0; border-left: 0; border-top: 1px solid rgba(255, 255, 255, .06); }
+    .seal { width: 46px; height: 46px; font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Vessels of the Way · 中国文物粒子</div>
+    <div class="brand">
+      <div class="seal"><span>國</span><span>寶</span></div>
+      <h1>载道</h1>
+    </div>
+    <p class="lead">器以载道。五千年的光，在尘埃里重新聚拢——以数十万粒子重现良渚玉琮、后母戊鼎、越王勾践剑与元青花梅瓶。</p>
+  </header>
+
+  <div class="player">
+    <video controls preload="metadata" playsinline poster="site/poster.jpg">
+      <source src="载道_文物粒子_分享版.mp4" type="video/mp4">
+    </video>
+  </div>
+  <p class="caption">成片视频 · 90 秒 · 1080p · 含配乐</p>
+
+  <div class="cards">
+    <a class="card" href="载道_交互演示.html" target="_blank" rel="noopener">
+      <div class="kicker">Interactive</div>
+      <h3>在线交互演示</h3>
+      <p>浏览器中实时渲染粒子。点击、空格或方向键翻页，文物会消散再凝聚；按住拖动可旋转文物，F 键全屏。</p>
+      <span class="btn">打开演示 ›</span>
+    </a>
+    <a class="card" href="载道_文物粒子.pptx" download>
+      <div class="kicker">PowerPoint</div>
+      <h3>可编辑 PPT</h3>
+      <p>8 页，文字、标签、时间轴均可直接编辑；每页背景是循环的粒子视频，放映时翻页即凝聚成形。约 69 MB。</p>
+      <span class="btn">下载 .pptx ›</span>
+    </a>
+    <a class="card" href="载道_文物粒子_分享版.mp4" download>
+      <div class="kicker">Video</div>
+      <h3>下载成片</h3>
+      <p>90 秒成片，配乐为程序合成的古筝式拨弦、编钟与风声。适合直接分享或在大屏播放。约 56 MB。</p>
+      <span class="btn">下载 .mp4 ›</span>
+    </a>
+  </div>
+
+  <section>
+    <div class="kicker">Slides</div>
+    <h2>PPT 预览</h2>
+    <div class="gallery">
+      <figure><img src="site/slide1.jpg" alt="封面：载道" loading="lazy"><figcaption>01 · 封面</figcaption></figure>
+      <figure><img src="site/slide2.jpg" alt="良渚玉琮" loading="lazy"><figcaption>02 · 良渚玉琮</figcaption></figure>
+      <figure><img src="site/slide3.jpg" alt="后母戊鼎" loading="lazy"><figcaption>03 · 后母戊鼎</figcaption></figure>
+      <figure><img src="site/slide4.jpg" alt="越王勾践剑" loading="lazy"><figcaption>04 · 越王勾践剑</figcaption></figure>
+      <figure><img src="site/slide5.jpg" alt="元青花梅瓶" loading="lazy"><figcaption>05 · 元青花梅瓶</figcaption></figure>
+      <figure><img src="site/slide6.jpg" alt="五千年 · 四件器" loading="lazy"><figcaption>06 · 四件器</figcaption></figure>
+      <figure><img src="site/slide7.jpg" alt="千年一脉" loading="lazy"><figcaption>07 · 千年一脉</figcaption></figure>
+      <figure><img src="site/slide8.jpg" alt="器以载道，万点成山河" loading="lazy"><figcaption>08 · 山河</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Four Relics</div>
+    <h2>四件器</h2>
+    <div class="relics">
+      <div class="relic"><div class="era">新石器时代 · 良渚文化</div><h4>良渚玉琮</h4><p>外方内圆，节节相叠，四角以阴线琢出神人兽面。</p></div>
+      <div class="relic"><div class="era">商代晚期 · 国家博物馆</div><h4>后母戊鼎</h4><p>通高 133 厘米，重 832.84 千克，已知最重的中国古代青铜器。</p></div>
+      <div class="relic"><div class="era">春秋晚期 · 湖北省博物馆</div><h4>越王勾践剑</h4><p>菱形暗格纹，剑格嵌琉璃与绿松石，鸟篆“越王鸠浅，自乍用剑”。</p></div>
+      <div class="relic"><div class="era">元代 · 景德镇窑</div><h4>元青花梅瓶</h4><p>小口丰肩，钴料绘云龙、云肩与莲瓣，开一代青花之风。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">How It's Made</div>
+    <h2>制作说明</h2>
+    <div class="notes">
+      <ul>
+        <li><b>粒子</b>Three.js 程序化生成文物点云（单件最多 26 万粒子），纹饰由程序绘制，为艺术化近似，并非实物扫描。</li>
+        <li><b>视频</b>无头浏览器逐帧渲染（2 倍超采样），ffmpeg 合成；配乐由 Python 合成。</li>
+        <li><b>PPT</b>pptxgenjs 生成，原生文字与动画；粒子背景为无缝循环的 MP4，PowerPoint 2013 及以上可播放。</li>
+      </ul>
+      <ul>
+        <li><b>重新渲染视频</b><code>node render.js</code></li>
+        <li><b>重新生成 PPT</b><code>node render-clips.js</code> 然后 <code>node build-pptx.js</code></li>
+        <li><b>重新打包交互演示</b><code>node build-ppt.js</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>载道 · 文物粒子 · 2026</span>
+    <a href="https://github.com/johnhuasheng/zaidao-relic-particles" target="_blank" rel="noopener">GitHub 源码 ›</a>
+  </footer>
+</div>
+</body>
+</html>

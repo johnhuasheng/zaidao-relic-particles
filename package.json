@@ -1,0 +1,15 @@
+{
+  "name": "relic-particles",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "puppeteer-core": "^23.11.1",
+    "three": "^0.169.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "jszip": "^3.10.2",
+    "pptxgenjs": "^3.12.0"
+  }
+}

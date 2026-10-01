@@ -1,0 +1,9 @@
+node_modules/
+out/
+# 高清版成片（287MB，超过 GitHub 单文件上限）
+载道_文物粒子.mp4
+# PPT 粒子片段（已嵌入 PPT，可用 node render-clips.js 重新生成）
+ppt/clips/
+
+# 本机 Claude 设置
+.claude/

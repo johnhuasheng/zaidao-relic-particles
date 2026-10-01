@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>载道 · 交互演示</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --gold: #d8b36a; --gold2: #b8964f; --ink: #e9e4d6; --dim: #8d978f; --bg: #121a17; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #050807; overflow: hidden; width: 100%; height: 100%; user-select: none; -webkit-user-select: none; }
+  #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--bg); overflow: hidden;
+           font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', serif; color: var(--ink); cursor: pointer; }
+  #stage.dragging { cursor: grabbing; }
+  #gl { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+  .vignette { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 48%, rgba(0,0,0,0) 45%, rgba(4,8,6,.55) 100%); }
+  .grain { position: absolute; inset: 0; pointer-events: none; opacity: .05;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.4) 0 1px, transparent 1px 3px); }
+
+  .card { position: absolute; display: none; pointer-events: none; }
+  .card.left { left: 150px; top: 50%; transform: translateY(-52%); width: 640px; }
+  .card.right { left: 1090px; top: 50%; transform: translateY(-52%); width: 660px; }
+  .kicker { font-family: 'Segoe UI', 'Noto Sans SC', sans-serif; font-size: 24px; letter-spacing: .2em; color: var(--gold); font-weight: 500; }
+  .card h2 { font-size: 64px; font-weight: 600; color: var(--gold); letter-spacing: .06em; line-height: 1.15; margin-top: 10px; }
+  .en { font-family: Georgia, 'Times New Roman', serif; font-size: 22px; letter-spacing: .24em; color: #cfc9b8; margin-top: 4px; }
+  .meta { font-size: 18px; color: var(--dim); letter-spacing: .12em; margin-top: 14px; }
+  .meta::before { content: ''; display: inline-block; width: 26px; height: 1px; background: var(--gold2); vertical-align: middle; margin-right: 12px; }
+  .sub { font-size: 32px; margin-top: 26px; letter-spacing: .08em; color: #efe9da; }
+  .typer { font-size: 20px; line-height: 1.95; color: #aeb5ac; margin-top: 18px; min-height: 120px; letter-spacing: .04em; }
+  .caret { display: inline-block; width: 9px; height: 20px; background: var(--gold); vertical-align: -3px; margin-left: 4px; }
+  .specs { display: flex; gap: 70px; margin-top: 30px; }
+  .specs b { display: block; font-weight: 400; font-size: 17px; color: #c9c3b2; }
+  .specs small { display: block; font-family: Georgia, serif; font-size: 13px; color: #6f786f; margin-bottom: 12px; letter-spacing: .05em; }
+  .dots span { display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+  .tags span { display: inline-block; font-size: 14px; padding: 4px 9px; margin-right: 8px; border: 1px solid rgba(216,179,106,.35); color: #cdbf9c; background: rgba(216,179,106,.05); }
+  .idx { position: absolute; font-family: Georgia, serif; font-size: 220px; color: rgba(216,179,106,.05); top: -170px; left: -20px; letter-spacing: -.02em; }
+
+  .title { left: 330px; top: 250px; }
+  .title .kicker { font-size: 26px; letter-spacing: .28em; }
+  .title h1 { font-size: 150px; font-weight: 600; color: var(--gold); letter-spacing: .12em; line-height: 1.1; margin-top: 12px; text-shadow: 0 0 40px rgba(216,179,106,.25); }
+  .title .tsub { font-size: 24px; color: #b9bdb2; letter-spacing: .12em; margin-top: 26px; }
+  .gline { height: 1px; width: 420px; margin-top: 36px; transform-origin: 0 50%; background: linear-gradient(90deg, var(--gold), rgba(216,179,106,0)); }
+  .seal { position: absolute; left: -128px; top: 58px; width: 92px; height: 92px; border: 3px solid #b8432f; color: #c9513a;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 34px; font-weight: 700; line-height: 1.05; background: rgba(184,67,47,.06); }
+  .start { margin-top: 70px; font-size: 18px; letter-spacing: .4em; color: #9aa196; }
+  .start i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); margin-right: 16px; vertical-align: 2px; box-shadow: 0 0 12px var(--gold); }
+
+  .head { left: 0; width: 1920px; top: 150px; text-align: center; }
+  .head h3 { font-size: 46px; font-weight: 500; color: var(--gold); letter-spacing: .3em; margin-top: 12px; }
+  .head .sub { font-size: 24px; color: #b7bcb0; margin-top: 18px; }
+  .labs { left: 0; top: 0; }
+  .lab { position: absolute; top: 770px; width: 260px; margin-left: -130px; text-align: center; pointer-events: auto; cursor: pointer; padding-bottom: 8px; }
+  .lab b { display: block; font-weight: 500; font-size: 24px; color: #e6dcc0; letter-spacing: .12em; transition: color .3s; }
+  .lab small { display: block; font-size: 16px; color: var(--dim); letter-spacing: .2em; margin-top: 6px; }
+  .lab::before { content: ''; display: block; width: 1px; height: 26px; margin: 0 auto 12px; background: linear-gradient(rgba(216,179,106,0), var(--gold2)); }
+  .lab:hover b { color: var(--gold); }
+  .lab em { display: block; font-style: normal; font-size: 13px; color: var(--gold2); letter-spacing: .2em; margin-top: 10px; opacity: 0; transition: opacity .3s; }
+  .lab:hover em { opacity: 1; }
+
+  .finale { left: 150px; top: 120px; width: 900px; }
+  .finale .kicker { font-family: Georgia, serif; font-size: 20px; letter-spacing: .3em; }
+  .finale h2 { font-size: 72px; color: #f1ead8; font-weight: 500; letter-spacing: .1em; margin-top: 14px; }
+  .finale .sub { font-size: 26px; color: #b7bcb0; margin-top: 20px; }
+  .finale .end { font-size: 18px; color: var(--gold2); letter-spacing: .5em; margin-top: 40px; }
+
+  #hud { position: absolute; left: 0; right: 0; bottom: 50px; height: 40px; }
+  #chap { position: absolute; left: 70px; top: 9px; font-family: Georgia, serif; font-size: 18px; color: var(--gold2); letter-spacing: .1em; }
+  #chap b { color: var(--gold); font-weight: 400; }
+  .track { position: absolute; left: 170px; right: 420px; top: 20px; height: 1px; background: rgba(255,255,255,.1); }
+  #prog { height: 1px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, var(--gold), #5fb49c); transition: transform 1.2s cubic-bezier(.6,0,.2,1); }
+  .ticks { position: absolute; inset: -6px 0 0 0; }
+  .ticks span { position: absolute; top: 2px; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; background: #2a332f; transition: background .6s, box-shadow .6s; pointer-events: auto; cursor: pointer; }
+  .ticks span.on { background: var(--gold); box-shadow: 0 0 10px rgba(216,179,106,.7); }
+  .ctrl { position: absolute; right: 70px; top: 0; display: flex; gap: 10px; }
+  .ctrl button { font: 15px 'Noto Serif SC', serif; color: #d8d2c0; background: rgba(12,17,15,.8); border: 1px solid rgba(255,255,255,.16);
+                 height: 38px; min-width: 38px; padding: 0 12px; cursor: pointer; transition: border-color .3s, color .3s; }
+  .ctrl button:hover { border-color: var(--gold); color: var(--gold); }
+  .ctrl button.off { color: #6b726c; }
+  #hint { position: absolute; left: 0; right: 0; bottom: 112px; text-align: center; font-size: 15px; letter-spacing: .3em; color: #6f786f; transition: opacity .8s; pointer-events: none; }
+  #loading { position: absolute; inset: 0; display: grid; place-items: center; background: var(--bg); color: var(--gold2); font-size: 20px; letter-spacing: .5em; z-index: 5; transition: opacity 1s; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+
+  <!-- 第 1 页：封面 -->
+  <section class="card title" data-slide="0">
+    <div class="seal" data-d="0.9"><span>國</span><span>寶</span></div>
+    <div class="kicker" data-d="0">VESSELS OF THE WAY</div>
+    <h1 data-d="0.25">载道</h1>
+    <div class="tsub" data-d="0.8">器以载道。五千年的光，在尘埃里重新聚拢。</div>
+    <div class="gline"></div>
+    <div class="start" data-d="2.0"><i></i>点击任意处开始</div>
+  </section>
+
+  <!-- 第 2 页：良渚玉琮 -->
+  <section class="card left" data-slide="1">
+    <div class="idx" data-d="0">01</div>
+    <div class="kicker" data-d="0">NEOLITHIC RITUAL JADE</div>
+    <h2 data-d="0.15">良渚玉琮</h2>
+    <div class="en" data-d="0.35">LIANGZHU JADE CONG</div>
+    <div class="meta" data-d="0.5">良渚文化 · 距今约五千年</div>
+    <div class="sub" data-d="0.7">外方内圆，以琮礼地</div>
+    <p class="typer" data-d="1.0">良渚先民礼地的神器。外方而内圆，节节相叠，四角以细如发丝的阴线琢出神人兽面——在没有金属工具的年代，一线一刻，皆是时间。</p>
+    <div class="specs" data-d="1.6">
+      <div><b>主要颜色</b><small>main color</small><span class="dots"><span style="background:#8cc4a0"></span><span style="background:#4f8a6c"></span><span style="background:#dfe8d2"></span><span style="background:#b08d58"></span><span style="background:#2c3f36"></span></span></div>
+      <div><b>工艺线索</b><small>craft clue</small><span class="tags"><span>神人兽面</span><span>阴线微雕</span><span>管钻</span><span>礼器</span></span></div>
+    </div>
+  </section>
+
+  <!-- 第 3 页：后母戊鼎 -->
+  <section class="card right" data-slide="2">
+    <div class="idx" data-d="0">02</div>
+    <div class="kicker" data-d="0">BRONZE RITUAL CAULDRON</div>
+    <h2 data-d="0.15">后母戊鼎</h2>
+    <div class="en" data-d="0.35">HOUMUWU DING</div>
+    <div class="meta" data-d="0.5">商代晚期 · 中国国家博物馆</div>
+    <div class="sub" data-d="0.7">鼎立千年，国之重器</div>
+    <p class="typer" data-d="1.0">商王为祭祀母亲“戊”而铸，通高133厘米，重832.84千克，是已知最重的中国古代青铜器。四壁饕餮盘踞，双耳猛虎衔首——一器之重，即一国之重。</p>
+    <div class="specs" data-d="1.6">
+      <div><b>主要颜色</b><small>main color</small><span class="dots"><span style="background:#6fae95"></span><span style="background:#dcbc72"></span><span style="background:#3f6656"></span><span style="background:#b9c9b0"></span><span style="background:#8a6e3f"></span></span></div>
+      <div><b>工艺线索</b><small>craft clue</small><span class="tags"><span>陶范合铸</span><span>饕餮纹</span><span>扉棱</span><span>虎噬人首</span></span></div>
+    </div>
+  </section>
+
+  <!-- 第 4 页：越王勾践剑 -->
+  <section class="card left" data-slide="3">
+    <div class="idx" data-d="0">03</div>
+    <div class="kicker" data-d="0">BRONZE SWORD OF YUE</div>
+    <h2 data-d="0.15">越王勾践剑</h2>
+    <div class="en" data-d="0.35">SWORD OF GOUJIAN</div>
+    <div class="meta" data-d="0.5">春秋晚期 · 湖北省博物馆</div>
+    <div class="sub" data-d="0.7">卧薪尝胆，锋芒未老</div>
+    <p class="typer" data-d="1.0">1965年出土于湖北江陵，长55.7厘米。剑身满布菱形暗格纹，剑格嵌蓝色琉璃与绿松石，近格处八字鸟篆：“越王鸠浅，自乍用剑”。沉睡两千余年，出鞘依旧寒光逼人。</p>
+    <div class="specs" data-d="1.6">
+      <div><b>主要颜色</b><small>main color</small><span class="dots"><span style="background:#d2b26a"></span><span style="background:#6e5a34"></span><span style="background:#3fc4cc"></span><span style="background:#4a78e6"></span><span style="background:#efe0b0"></span></span></div>
+      <div><b>工艺线索</b><small>craft clue</small><span class="tags"><span>菱形暗格</span><span>鸟篆铭文</span><span>琉璃镶嵌</span><span>同心圆首</span></span></div>
+    </div>
+  </section>
+
+  <!-- 第 5 页：元青花梅瓶 -->
+  <section class="card right" data-slide="4">
+    <div class="idx" data-d="0">04</div>
+    <div class="kicker" data-d="0">BLUE-AND-WHITE PORCELAIN</div>
+    <h2 data-d="0.15">元青花梅瓶</h2>
+    <div class="en" data-d="0.35">YUAN DYNASTY MEIPING</div>
+    <div class="meta" data-d="0.5">元代 · 景德镇窑</div>
+    <div class="sub" data-d="0.7">青花一笔，白地生云</div>
+    <p class="typer" data-d="1.0">小口、丰肩、瘦底，口小仅容梅之瘦骨，故名梅瓶。元代景德镇以进口钴料绘云龙、云肩与莲瓣，发色浓艳，白地如玉，开一代青花之风。</p>
+    <div class="specs" data-d="1.6">
+      <div><b>主要颜色</b><small>main color</small><span class="dots"><span style="background:#eef3f5"></span><span style="background:#3f70e8"></span><span style="background:#2a4fb8"></span><span style="background:#b9c6d4"></span><span style="background:#1c2a4a"></span></span></div>
+      <div><b>工艺线索</b><small>craft clue</small><span class="tags"><span>钴料青花</span><span>云龙纹</span><span>云肩</span><span>莲瓣纹</span></span></div>
+    </div>
+  </section>
+
+  <!-- 第 6 页：四器并列（标签可点击跳转） -->
+  <section class="card head" data-slide="5">
+    <div class="kicker" data-d="0">FIVE THOUSAND YEARS · FOUR RELICS</div>
+    <h3 data-d="0.2">五千年 · 四件器</h3>
+  </section>
+  <section class="card labs" data-slide="5">
+    <div class="lab" data-d="0.2" data-go="1" style="left:436px"><b>良渚玉琮</b><small>新石器时代</small><em>回看 ›</em></div>
+    <div class="lab" data-d="0.5" data-go="2" style="left:786px"><b>后母戊鼎</b><small>商</small><em>回看 ›</em></div>
+    <div class="lab" data-d="0.8" data-go="3" style="left:1135px"><b>越王勾践剑</b><small>春秋</small><em>回看 ›</em></div>
+    <div class="lab" data-d="1.1" data-go="4" style="left:1484px"><b>元青花梅瓶</b><small>元</small><em>回看 ›</em></div>
+  </section>
+
+  <!-- 第 7 页：光河 -->
+  <section class="card head" data-slide="6">
+    <div class="kicker" data-d="0">ONE CONTINUOUS RIVER</div>
+    <h3 data-d="0.2">千年一脉</h3>
+    <div class="sub" data-d="0.6">从玉到铜，从剑到瓷——器物如河，奔流不息。</div>
+  </section>
+
+  <!-- 第 8 页：山河 -->
+  <section class="card finale" data-slide="7">
+    <div class="kicker" data-d="0">FOUR RELICS, ONE LANDSCAPE</div>
+    <h2 data-d="0.3">器以载道，万点成山河</h2>
+    <div class="sub" data-d="1.0">文物不语，自有山河万里。</div>
+    <div class="end" data-d="2.2">— 载道 · 完 —</div>
+  </section>
+
+  <div id="hint"></div>
+  <div id="hud">
+    <div id="chap"><b>01</b> / 08</div>
+    <div class="track"><div id="prog"></div><div class="ticks" id="ticks"></div></div>
+    <div class="ctrl">
+      <button id="bPrev" title="上一页（←）">‹</button>
+      <button id="bNext" title="下一页（→ / 空格）">›</button>
+      <button id="bSound" title="声音（M）">声音 开</button>
+      <button id="bFull" title="全屏（F）">全屏</button>
+    </div>
+  </div>
+  <div id="loading">正在铸造粒子…</div>
+</div>
+<script>
+  const fit = () => { const s = Math.min(innerWidth / 1920, innerHeight / 1080), st = document.getElementById('stage');
+    st.style.transform = `translate(${(innerWidth - 1920 * s) / 2}px, ${(innerHeight - 1080 * s) / 2}px) scale(${s})`; window.__scale = s; };
+  addEventListener('resize', fit); fit();
+</script>
+<!--APP-->
+</body>
+</html>
